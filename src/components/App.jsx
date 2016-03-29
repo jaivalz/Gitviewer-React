@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import Profile from './github/Profile.jsx';
+import Search from './github/Search.jsx';
 
 class App extends Component{
   constructor(props){
@@ -11,26 +12,31 @@ class App extends Component{
       userRepos: [],
       perPage: 5
     }
-
   }
-
-  // Get user data from github
+  // Get userdata from github
   getUserData(){
-    $.ajax({
-      url: 'https://api.github.com/users/'+this.state.username+'?client_id='+this.props.clientId+'&client_secret='+this.props.clientSecret,
-      dataType: 'json',
-      cache: false,
-      success: function(data){
-        this.setState({userData: data});
-      }.bind(this),
-      error: function(xhr, status, err){
-        this.setState({username: null});
-        alert(err);
-      }.bind(this)
-    });
+      $.ajax({
+        url: 'https://api.github.com/users/'+this.state.username+'?client_id='+this.props.clientId+'&client_secret='+this.props.clientSecret,
+        dataType: 'json',
+        cache: false,
+        success: function(data){
+          this.setState({userData: data});
+          console.log(data);
+        }.bind(this),
+        error: function(xhr, status, err){
+          this.setState({userData: null});
+          alert(err);
+        }.bind(this)
+      });
+      //alert('got it');
   }
 
-  // Get user repos
+  searchGitUser(name){
+    this.state.username = name;
+    this.getUserData();
+    this.getUserRepos();
+  }
+
   getUserRepos(){
     $.ajax({
       url: 'https://api.github.com/users/'+this.state.username+'/repos?per_page='+this.state.perPage+'&client_id='+this.props.clientId+'&client_secret='+this.props.clientSecret+'&sorted=created',
@@ -46,7 +52,6 @@ class App extends Component{
     });
   }
 
-
   componentDidMount(){
     this.getUserData();
     this.getUserRepos();
@@ -55,9 +60,11 @@ class App extends Component{
   render(){
     return(
       <div>
+        <Search searchFunction = {this.searchGitUser.bind(this)} />
+        <hr />
         <Profile {...this.state} />
       </div>
-    )
+    );
   }
 }
 
@@ -65,6 +72,7 @@ App.propTypes = {
   clientId: React.PropTypes.string,
   clientSecret: React.PropTypes.string
 };
+
 App.defaultProps = {
   clientId: '',
   clientSecret: ''
